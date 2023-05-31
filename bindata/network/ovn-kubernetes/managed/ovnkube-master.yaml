@@ -80,11 +80,13 @@ spec:
                   values:
                     - {{.HostedClusterNamespace}}
         podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchLabels:
-                app: ovnkube-master
-            topologyKey: topology.kubernetes.io/zone
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: ovnkube-master
+              topologyKey: topology.kubernetes.io/zone
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -1093,3 +1095,7 @@ spec:
           operator: "Equal"
           value: {{.HostedClusterNamespace}}
           effect: "NoSchedule"
+        - effect: "NoSchedule"
+          key: "hypershift.openshift.io/control-plane-serving-component"
+          operator: "Equal"
+          value: "true"

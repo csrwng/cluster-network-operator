@@ -172,6 +172,14 @@ func renderOVNKubernetes(conf *operv1.NetworkSpec, bootstrapResult *bootstrap.Bo
 		klog.Infof("OVN_NB_INACTIVITY_PROBE env var is not defined. Using: %s", nb_inactivity_probe)
 	}
 
+	nodeSelector := map[string]string{}
+	for k, v := range bootstrapResult.Infra.HostedControlPlane.Spec.NodeSelector {
+		nodeSelector[k] = v
+	}
+	if _, hasReplicasAnnotation := bootstrapResult.Infra.HostedControlPlane.Annotations["hypershift.openshift.io/serving-component-replicas"]; hasReplicasAnnotation {
+		nodeSelector["hypershift.openshift.io/control-plane-serving-component"] = "true"
+	}
+
 	// Hypershift
 	data.Data["ManagementClusterName"] = names.ManagementClusterName
 	data.Data["HostedClusterNamespace"] = bootstrapResult.OVN.OVNKubernetesConfig.HyperShiftConfig.Namespace
@@ -181,7 +189,7 @@ func renderOVNKubernetes(conf *operv1.NetworkSpec, bootstrapResult *bootstrap.Bo
 	data.Data["OVNDbServiceType"] = corev1.ServiceTypeClusterIP
 	data.Data["OVNSbDbRouteHost"] = bootstrapResult.OVN.OVNKubernetesConfig.HyperShiftConfig.OVNSbDbRouteHost
 	data.Data["OVNSbDbRouteLabels"] = bootstrapResult.OVN.OVNKubernetesConfig.HyperShiftConfig.OVNSbDbRouteLabels
-	data.Data["HCPNodeSelector"] = bootstrapResult.OVN.OVNKubernetesConfig.HyperShiftConfig.HCPNodeSelector
+	data.Data["HCPNodeSelector"] = nodeSelector
 	data.Data["OVN_SB_NODE_PORT"] = nil
 	data.Data["OVN_NB_DB_ENDPOINT"] = fmt.Sprintf("ssl:%s:%s", bootstrapResult.OVN.OVNKubernetesConfig.HyperShiftConfig.OVNSbDbRouteHost, OVN_SB_DB_ROUTE_PORT)
 	data.Data["OVN_SB_DB_ENDPOINT"] = fmt.Sprintf("ssl:%s:%s", bootstrapResult.OVN.OVNKubernetesConfig.HyperShiftConfig.OVNSbDbRouteHost, OVN_SB_DB_ROUTE_PORT)
